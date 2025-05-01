@@ -69,7 +69,7 @@ def run_detection(
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter.fourcc(*"mp4v")
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     pixel_to_meter = 0.05

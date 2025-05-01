@@ -6,3 +6,4 @@ videos
 .pre-commit-config.yaml
 config.yaml
 pyrightconfig.json
+results/annotated.mp4

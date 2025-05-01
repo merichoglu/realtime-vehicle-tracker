@@ -2,16 +2,17 @@
 
 import argparse
 import logging
-import cv2
-from detector import VehicleDetector
 from typing import Optional
+
+import cv2
+
+from detector import VehicleDetector
 
 
 def setup_logger() -> None:
     """Configure logging format."""
     logging.basicConfig(
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        level=logging.INFO
+        format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
     )
 
 
@@ -21,21 +22,29 @@ def parse_args() -> argparse.Namespace:
         description="Real-time vehicle detection using YOLOv11."
     )
     parser.add_argument(
-        "--path", type=str, default=None,
-        help="Path to input video file. If omitted, webcam will be used."
+        "--path",
+        type=str,
+        default=None,
+        help="Path to input video file. If omitted, webcam will be used.",
     )
     parser.add_argument(
-        "--model", type=str, default="yolov11n.pt",
-        help="Path to YOLOv11 .pt model file."
+        "--model",
+        type=str,
+        default="yolov8n.pt",
+        help="Path to YOLOv11 .pt model file.",
     )
     parser.add_argument(
-        "--conf", type=float, default=0.4,
-        help="Confidence threshold for YOLO detection."
+        "--conf",
+        type=float,
+        default=0.4,
+        help="Confidence threshold for YOLO detection.",
     )
     return parser.parse_args()
 
 
-def run_detection(video_path: Optional[str], model_path: str, conf_threshold: float) -> None:
+def run_detection(
+    video_path: Optional[str], model_path: str, conf_threshold: float
+) -> None:
     """
     Run YOLOv11-based vehicle detection on input video or webcam.
 
@@ -68,12 +77,19 @@ def run_detection(video_path: Optional[str], model_path: str, conf_threshold: fl
             x1, y1, x2, y2 = map(int, xyxy)
             label = f"{cls_id} {conf:.2f}"
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(frame, label, (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(
+                frame,
+                label,
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (0, 255, 0),
+                2,
+            )
 
         cv2.imshow("YOLOv11 Vehicle Detection", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             logging.info("Quitting detection.")
             break
 

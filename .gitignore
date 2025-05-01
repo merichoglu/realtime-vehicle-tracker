@@ -1,2 +1,4 @@
 .ropeproject
 .venv/
+.ruff_cache
+.src/__pycache__/

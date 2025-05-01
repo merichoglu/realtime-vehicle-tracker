@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-import cv2
+
 
 class VehicleDetector:
     def __init__(self, model_path="yolov8n.pt", conf=0.4):
@@ -9,6 +9,9 @@ class VehicleDetector:
     def detect(self, image):
         results = self.model.predict(image, conf=self.conf_threshold, verbose=True)[0]
         detections = []
+
+        if results.boxes is None:
+            return detections
 
         for box in results.boxes:
             cls_id = int(box.cls[0])

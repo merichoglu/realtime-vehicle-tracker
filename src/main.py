@@ -37,13 +37,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--conf",
         type=float,
-        default=0.4,
+        default=0.5,
         help="Confidence threshold for YOLO detection.",
     )
     parser.add_argument(
         "--out",
         type=str,
-        default="output.mp4",
+        default="results/output.mp4",
         help="Output video path (optional)",
     )
     return parser.parse_args()
@@ -94,32 +94,27 @@ def run_detection(
         for obj in tracked_objects:
             x1, y1, x2, y2 = obj["bbox"]
             tid = obj["track_id"]
-            speed = obj.get("speed_kmh", 0.0)
+            speed = obj["speed_kmh"]
             label = f"ID {tid} | {speed:.1f} km/h"
 
-            h = max(20, y2 - y1)
-            font_scale = min(max(h / 300, 0.3), 0.8)
-            thickness = max(1, int(h / 200))
+            # 1) box
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), thickness)
+            # 2) text size
+            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+
+            # 3) filled background
+            cv2.rectangle(frame, (x1, y1 - th - 6), (x1 + tw + 4, y1), (0, 255, 0), -1)
+
+            # 4) text on top
             cv2.putText(
                 frame,
                 label,
-                (x1, y1 - 5),
+                (x1 + 2, y1 - 4),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                font_scale,
-                (0, 0, 0),
-                thickness + 2,
-                cv2.LINE_AA,
-            )
-            cv2.putText(
-                frame,
-                label,
-                (x1, y1 - 5),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                font_scale,
+                0.6,
                 (255, 255, 255),
-                thickness,
+                2,
                 cv2.LINE_AA,
             )
 

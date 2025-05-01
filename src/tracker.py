@@ -1,6 +1,6 @@
 # src/tracker.py
 
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 from deep_sort_realtime.deepsort_tracker import DeepSort
 
@@ -17,57 +17,60 @@ def iou(
     interArea = interW * interH
     boxAArea = (boxA[2] - boxA[0]) * (boxA[3] - boxA[1])
     boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])
-    unionArea = boxAArea + boxBArea - interArea + 1e-6
-    return interArea / unionArea
+    unionArea = boxAArea + boxBArea - interArea
+    return interArea / (unionArea + 1e-6)
 
 
 class ObjectTracker:
-    def __init__(
-        self, max_age: int = 30, n_init: int = 3, max_cosine_distance: float = 0.4
-    ):
+    def __init__(self, max_age=30, n_init=3, max_cosine_distance=0.6):
         self.tracker = DeepSort(
-            max_age=max_age, n_init=n_init, max_cosine_distance=max_cosine_distance
+            max_age=max_age,
+            n_init=n_init,
+            max_cosine_distance=max_cosine_distance,
         )
 
-    def update(self, detections: List[Tuple[int, float, Any]], frame) -> List[Dict]:
-        # 1) format for Deep SORT
-        formatted = []
-        for cls_id, conf, bbox in detections:
-            x1, y1, x2, y2 = bbox
-            formatted.append(([x1, y1, x2, y2], conf, cls_id))
+    def update(
+        self,
+        detections: List[Tuple[int, float, Tuple[float, float, float, float]]],
+        frame,
+    ) -> List[Dict]:
+        # format detections for DeepSORT
+        formatted = [
+            ([x1, y1, x2, y2], conf, cls) for cls, conf, (x1, y1, x2, y2) in detections
+        ]
 
-        # 2) run tracker
         tracks = self.tracker.update_tracks(formatted, frame=frame)
+        out = []
+        seen = set()
 
-        results = []
-        for track in tracks:
-            if not track.is_confirmed():
+        for t in tracks:
+            if not t.is_confirmed() or t.time_since_update > 0:
                 continue
 
-            tid = track.track_id
-            cls = track.det_class
+            tid = t.track_id
+            if tid in seen:
+                continue
+            seen.add(tid)
 
-            # 3) get the Kalman‐predicted box for this track (for IoU matching)
-            pred_box = track.to_ltrb()
-
-            # 4) find which YOLO det it came from
-            best_iou = 0.0
-            best_bbox = pred_box  # fallback
-            for det_cls, _, det_bbox in detections:
-                if det_cls != cls:
+            # take Kalman‐predicted box
+            pred = t.to_ltrb()
+            # match it back to the one raw detection this frame
+            best_box, best_iou = None, 0.0
+            for cls, _, det_box in detections:
+                if cls != t.det_class:
                     continue
-                i = iou(pred_box, det_bbox)
+                i = iou(pred, det_box)
                 if i > best_iou:
-                    best_iou = i
-                    best_bbox = det_bbox
+                    best_iou, best_box = i, det_box
 
-            x1, y1, x2, y2 = best_bbox
-            results.append(
+            # if we found a matching detection, draw that; else fallback
+            x1, y1, x2, y2 = best_box if best_box is not None else pred
+            out.append(
                 {
                     "track_id": tid,
-                    "class_id": cls,
+                    "class_id": t.det_class,
                     "bbox": [int(x1), int(y1), int(x2), int(y2)],
                 }
             )
 
-        return results
+        return out

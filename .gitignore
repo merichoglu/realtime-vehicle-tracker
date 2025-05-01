@@ -1,3 +1,4 @@
+.gitignore
 .ropeproject
 .venv/
 .ruff_cache
@@ -7,3 +8,4 @@ videos
 config.yaml
 pyrightconfig.json
 results/annotated.mp4
+results/*.mp4

@@ -4,33 +4,13 @@ from typing import Dict, List, Tuple
 
 
 class SpeedEstimator:
-    """
-    Estimate object speed (km/h) from pixel displacement between frames.
-    """
-
     def __init__(self, pixel_to_meter: float, fps: float):
-        """
-        Args:
-            pixel_to_meter: Conversion factor from pixels to meters (m per pixel).
-            fps:            Frame rate of the video (frames per second).
-        """
         self.pixel_to_meter = pixel_to_meter
         self.fps = fps
         # store last center position per track_id
         self._history: Dict[int, Tuple[float, float]] = {}
 
     def estimate(self, tracked_objects: List[dict]) -> List[dict]:
-        """
-        For each tracked object, compute speed based on movement since last frame.
-
-        Args:
-            tracked_objects: List of dicts with keys:
-                - "track_id": int
-                - "bbox": [x1, y1, x2, y2]
-
-        Returns:
-            A new list where each dict has an added key "speed_kmh" (float).
-        """
         results: List[dict] = []
         for obj in tracked_objects:
             tid = obj["track_id"]

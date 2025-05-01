@@ -8,9 +8,6 @@ from deep_sort_realtime.deepsort_tracker import DeepSort
 def iou(
     boxA: Tuple[float, float, float, float], boxB: Tuple[float, float, float, float]
 ) -> float:
-    """
-    Compute Intersection over Union between two [x1,y1,x2,y2] boxes.
-    """
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
     xB = min(boxA[2], boxB[2])
@@ -28,26 +25,11 @@ class ObjectTracker:
     def __init__(
         self, max_age: int = 30, n_init: int = 3, max_cosine_distance: float = 0.4
     ):
-        """
-        Wraps Deep SORT.
-        """
         self.tracker = DeepSort(
             max_age=max_age, n_init=n_init, max_cosine_distance=max_cosine_distance
         )
 
     def update(self, detections: List[Tuple[int, float, Any]], frame) -> List[Dict]:
-        """
-        Args:
-          detections: list of (cls_id, conf, [x1,y1,x2,y2]) from YOLO
-          frame: current BGR image
-
-        Returns:
-          list of dicts: {
-            "track_id": int,
-            "class_id": int,
-            "bbox": [x1,y1,x2,y2]
-          }
-        """
         # 1) format for Deep SORT
         formatted = []
         for cls_id, conf, bbox in detections:

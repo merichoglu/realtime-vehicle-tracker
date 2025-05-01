@@ -13,14 +13,12 @@ from tracker import ObjectTracker
 
 
 def setup_logger() -> None:
-    """Configure logging format."""
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
     )
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Real-time vehicle detection, tracking, and speed estimation using YOLOv8 and Deep SORT."
     )

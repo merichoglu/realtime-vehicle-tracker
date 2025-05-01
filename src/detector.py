@@ -7,7 +7,9 @@ class VehicleDetector:
         self.conf_threshold = conf
 
     def detect(self, image):
-        results = self.model.predict(image, conf=self.conf_threshold, verbose=True)[0]
+        results = self.model.predict(
+            image, conf=self.conf_threshold, verbose=True, imgsz=640
+        )[0]
         detections = []
 
         if results.boxes is None:

@@ -9,3 +9,5 @@ config.yaml
 pyrightconfig.json
 results/annotated.mp4
 results/*.mp4
+papers/
+models/

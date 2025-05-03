@@ -22,7 +22,7 @@ def iou(
 
 
 class ObjectTracker:
-    def __init__(self, max_age=30, n_init=3, max_cosine_distance=0.6):
+    def __init__(self, max_age=60, n_init=5, max_cosine_distance=0.4):
         self.tracker = DeepSort(
             max_age=max_age,
             n_init=n_init,
@@ -34,36 +34,30 @@ class ObjectTracker:
         detections: List[Tuple[int, float, Tuple[float, float, float, float]]],
         frame,
     ) -> List[Dict]:
-        # format detections for DeepSORT
         formatted = [
             ([x1, y1, x2, y2], conf, cls) for cls, conf, (x1, y1, x2, y2) in detections
         ]
-
         tracks = self.tracker.update_tracks(formatted, frame=frame)
-        out = []
-        seen = set()
+        out, seen = [], set()
 
         for t in tracks:
+            # filter unconfirmed or stale
             if not t.is_confirmed() or t.time_since_update > 0:
                 continue
-
             tid = t.track_id
             if tid in seen:
                 continue
             seen.add(tid)
 
-            # take Kalman‐predicted box
-            pred = t.to_ltrb()
-            # match it back to the one raw detection this frame
+            pred = t.to_ltrb()  # use kalman-predicted bbox
             best_box, best_iou = None, 0.0
             for cls, _, det_box in detections:
                 if cls != t.det_class:
                     continue
-                i = iou(pred, det_box)
-                if i > best_iou:
-                    best_iou, best_box = i, det_box
+                score = iou(pred, det_box)
+                if score > best_iou:
+                    best_iou, best_box = score, det_box
 
-            # if we found a matching detection, draw that; else fallback
             x1, y1, x2, y2 = best_box if best_box is not None else pred
             out.append(
                 {
